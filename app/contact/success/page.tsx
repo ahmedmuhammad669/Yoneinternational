@@ -1,0 +1,3 @@
+import type { Metadata } from "next"; import Link from "next/link"; import { SiteShell } from "../../../components/site-shell";
+export const metadata:Metadata={title:"Enquiry received",robots:{index:false,follow:false}};
+export default async function Page({searchParams}:{searchParams:Promise<{reference?:string}>}){const{reference}=await searchParams;return <SiteShell><section className="success-page"><div className="success-card"><span className="success-mark" aria-hidden="true">✓</span><h1>Your enquiry was received.</h1><p>Reference: <strong>{reference||"Recorded"}</strong></p><Link className="button button-dark" href="/">Return home</Link></div></section></SiteShell>;}

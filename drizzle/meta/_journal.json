@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1785149420292,
+      "tag": "0000_legal_tempest",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1785149688466,
+      "tag": "0001_daily_gamora",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1785150578838,
+      "tag": "0002_noisy_pet_avengers",
+      "breakpoints": true
+    }
+  ]
+}

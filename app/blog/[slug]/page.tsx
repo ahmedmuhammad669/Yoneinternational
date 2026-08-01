@@ -1,0 +1,9 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { PageHero } from "../../../components/page-hero";
+import { PlainContent } from "../../../components/plain-content";
+import { SiteShell } from "../../../components/site-shell";
+import { postBySlug } from "../../../lib/content";
+export const dynamic="force-dynamic";
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}):Promise<Metadata>{const {slug}=await params;const post=await postBySlug(slug);return post?{title:post.title,description:post.excerpt||undefined,alternates:{canonical:`/blog/${slug}`}}:{};}
+export default async function BlogPost({params}:{params:Promise<{slug:string}>}){const {slug}=await params;const post=await postBySlug(slug);if(!post)notFound();const articleSchema={"@context":"https://schema.org","@type":"Article",headline:post.title,datePublished:post.publishedAt?new Date(post.publishedAt*1000).toISOString():undefined,dateModified:post.updatedDate?new Date(post.updatedDate*1000).toISOString():undefined,author:post.authorName?{"@type":"Person",name:post.authorName}:undefined};return <SiteShell><script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(articleSchema)}}/><PageHero eyebrow={post.categoryName||"Blog / News"} title={post.title} description={post.excerpt||"An approved update from Yone International."} breadcrumbs={[{label:"Home",href:"/"},{label:"Blog",href:"/blog"},{label:post.title}]}/><article className="section"><div className="site-container article-layout"><p className="article-meta">{post.authorName||"Yone International"} · {post.publishedAt?new Date(post.publishedAt*1000).toLocaleDateString("en-GB"):""}</p><PlainContent value={post.body||""}/>{post.sources&&<aside className="source-note"><h2>Sources</h2><PlainContent value={post.sources}/></aside>}</div></article></SiteShell>;}

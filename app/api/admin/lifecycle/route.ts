@@ -1,0 +1,18 @@
+import { NextResponse } from "next/server";
+import { AdminError, audit, requireAdminApi } from "../../../../lib/admin";
+import { adminResources } from "../../../../lib/admin-resources";
+import { first, run, unix } from "../../../../lib/db";
+import { assertSameOrigin, clean, ValidationError } from "../../../../lib/security";
+const back=(request:Request,r:string,m:string,error=false)=>NextResponse.redirect(new URL(`/admin/${r}?${error?"error":"ok"}=${encodeURIComponent(m)}`,request.url),303);
+export async function POST(request:Request){let resourceKey="overview";try{await assertSameOrigin(request);const form=await request.formData();resourceKey=clean(form.get("resource"),40);const itemId=clean(form.get("item_id"),100);const action=clean(form.get("action"),20);const resource=adminResources[resourceKey];if(!resource||!itemId||!["draft","publish","archive","trash","restore"].includes(action))throw new ValidationError("Invalid lifecycle request.");const admin=await requireAdminApi(Boolean(resource.ownerOnly));const now=unix();
+  if(action==="publish"){
+    if(resourceKey==="testimonials"){const row=await first<{permission_status:string;verification_status:string}>(`SELECT permission_status,verification_status FROM ${resource.table} WHERE id=?`,itemId);if(!row||row.permission_status!=="approved"||row.verification_status!=="verified")throw new ValidationError("Verified feedback and approved permission are required.");}
+    if(resourceKey==="certifications"){const row=await first<{verified:number;evidence_media_id:string|null}>(`SELECT verified,evidence_media_id FROM ${resource.table} WHERE id=?`,itemId);if(!row||row.verified!==1||!row.evidence_media_id)throw new ValidationError("Verified evidence is required.");}
+    if(resourceKey==="products"){const row=await first<{n:number}>("SELECT count(*) n FROM products p JOIN categories c ON c.id=p.category_id JOIN product_media pm ON pm.product_id=p.id JOIN media_assets ma ON ma.id=pm.media_id WHERE p.id=? AND c.status='published' AND c.deleted_at IS NULL AND ma.visibility='public' AND ma.status='published' AND ma.deleted_at IS NULL",itemId);if(!row?.n)throw new ValidationError("Publish the category and attach an approved public product image first.");}
+    await run(`UPDATE ${resource.table} SET status='published',published_at=?,archived_at=NULL,deleted_at=NULL,updated_by=?,updated_at=? WHERE id=?`,now,admin.email,now,itemId);
+  }else if(action==="draft")await run(`UPDATE ${resource.table} SET status='draft',published_at=NULL,archived_at=NULL,updated_by=?,updated_at=? WHERE id=?`,admin.email,now,itemId);
+  else if(action==="archive")await run(`UPDATE ${resource.table} SET status='archived',archived_at=?,updated_by=?,updated_at=? WHERE id=?`,now,admin.email,now,itemId);
+  else if(action==="trash"){if(resourceKey==="categories"){const use=await first<{n:number}>("SELECT count(*) n FROM products WHERE category_id=? AND deleted_at IS NULL",itemId);if(use?.n)throw new ValidationError("Reassign or trash active products before trashing this category.");}await run(`UPDATE ${resource.table} SET deleted_at=?,updated_by=?,updated_at=? WHERE id=?`,now,admin.email,now,itemId);}
+  else await run(`UPDATE ${resource.table} SET deleted_at=NULL,status='draft',updated_by=?,updated_at=? WHERE id=?`,admin.email,now,itemId);
+  await audit(admin.email,`content.${action}`,resource.table,itemId);return back(request,resourceKey,"Status updated.");
+}catch(error){const status=error instanceof AdminError?error.status:400;if(status===401||status===403)return NextResponse.json({error:error instanceof Error?error.message:"Access denied."},{status});return back(request,resourceKey,error instanceof Error?error.message:"Status update failed.",true);}}
