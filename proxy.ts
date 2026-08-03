@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Locale } from "./lib/i18n";
+import { createServerClient } from "@supabase/ssr";
 
 const routeLocales: Record<string, Locale> = {
   us: "en-US",
@@ -11,12 +12,18 @@ const routeLocales: Record<string, Locale> = {
   ko: "ko",
 };
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  let authResponse=NextResponse.next({request});
+  if(request.nextUrl.pathname.startsWith("/admin")||request.nextUrl.pathname.startsWith("/auth")){
+    const url=process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if(url&&key){const supabase=createServerClient(url,key,{cookies:{getAll:()=>request.cookies.getAll(),setAll:(updates)=>{updates.forEach(({name,value})=>request.cookies.set(name,value));authResponse=NextResponse.next({request});updates.forEach(({name,value,options})=>authResponse.cookies.set(name,value,options));}}});await supabase.auth.getUser();}
+  }
   const segments = request.nextUrl.pathname.split("/").filter(Boolean);
   const locale = routeLocales[segments[0] || ""];
   if (!locale) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-yone-public-path", request.nextUrl.pathname);
+    if(request.nextUrl.pathname.startsWith("/admin")||request.nextUrl.pathname.startsWith("/auth"))return authResponse;
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
@@ -40,6 +47,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|admin|_next|images|favicon.svg|robots.txt|sitemap.xml).*)",
+    "/((?!api|_next|images|icon-|favicon.svg|manifest.webmanifest|sw.js|robots.txt|sitemap.xml).*)",
   ],
 };

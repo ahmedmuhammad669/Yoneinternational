@@ -1,0 +1,6 @@
+import { NextResponse } from "next/server";
+import { requireAdminApi } from "../../../../../lib/admin";
+import { id, run, unix } from "../../../../../lib/db";
+import { assertSameOrigin } from "../../../../../lib/security";
+
+export async function POST(request:Request){try{await assertSameOrigin(request);const admin=await requireAdminApi();const body=await request.json() as {endpoint?:string;keys?:{p256dh?:string;auth?:string}};if(!body.endpoint?.startsWith("https://")||!body.keys?.p256dh||!body.keys.auth)return NextResponse.json({error:"Invalid push subscription."},{status:400});const now=unix();await run("INSERT INTO push_subscriptions(id,admin_user_id,endpoint,p256dh,auth,user_agent,active,created_at,updated_at) VALUES(?,?,?,?,?,?,1,?,?) ON CONFLICT(endpoint) DO UPDATE SET admin_user_id=excluded.admin_user_id,p256dh=excluded.p256dh,auth=excluded.auth,user_agent=excluded.user_agent,active=1,updated_at=excluded.updated_at",id("push"),admin.id,body.endpoint,body.keys.p256dh,body.keys.auth,request.headers.get("user-agent")?.slice(0,300)||null,now,now);return NextResponse.json({ok:true});}catch(error){return NextResponse.json({error:error instanceof Error?error.message:"Could not enable notifications."},{status:400});}}

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getChatGPTUser } from "../../../chatgpt-auth";
+import { getCurrentUser } from "../../../admin-auth";
 import { audit, bootstrapOwner, ownerCount } from "../../../../lib/admin";
 import { assertSameOrigin } from "../../../../lib/security";
 import { runtimeEnv } from "../../../../lib/runtime-env";
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Owner setup is closed." }, { status: 409 });
     }
 
-    const user = await getChatGPTUser();
+    const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     }

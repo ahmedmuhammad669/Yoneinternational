@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   description:
     "Yone International manufactures precision surgical, dental and beauty instruments in Sialkot, Pakistan for professional and international buyers.",
   applicationName: siteConfig.name,
+  manifest: "/manifest.webmanifest",
   keywords: [
     "surgical instruments manufacturer in Sialkot",
     "dental instruments Pakistan",
@@ -48,7 +49,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
+    apple: "/icon-192.png",
   },
+  appleWebApp: { capable: true, title: "Yone Admin", statusBarStyle: "black-translucent" },
 };
 
 export default async function RootLayout({

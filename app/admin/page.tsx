@@ -8,12 +8,12 @@ export default async function AdminDashboard(){
   const admin=await requireAdmin("/admin");
   const [counts,latest]=await Promise.all([
     Promise.all([
-      first<{n:number}>("SELECT count(*) n FROM products WHERE deleted_at IS NULL"),
-      first<{n:number}>("SELECT count(*) n FROM rfqs WHERE deleted_at IS NULL"),
-      first<{n:number}>("SELECT count(*) n FROM contact_inquiries WHERE deleted_at IS NULL"),
-      first<{n:number}>("SELECT count(*) n FROM media_assets WHERE deleted_at IS NULL"),
+      first<{n:number}>("SELECT count(*)::integer n FROM products WHERE deleted_at IS NULL"),
+      first<{n:number}>("SELECT count(*)::integer n FROM rfqs WHERE deleted_at IS NULL"),
+      first<{n:number}>("SELECT count(*)::integer n FROM contact_inquiries WHERE deleted_at IS NULL"),
+      first<{n:number}>("SELECT count(*)::integer n FROM media_assets WHERE deleted_at IS NULL"),
     ]),
-    all<{reference:string;kind:string;createdAt:number}>("SELECT reference,'RFQ' kind,created_at createdAt FROM rfqs WHERE deleted_at IS NULL UNION ALL SELECT reference,'Contact' kind,created_at createdAt FROM contact_inquiries WHERE deleted_at IS NULL ORDER BY createdAt DESC LIMIT 8"),
+    all<{reference:string;kind:string;createdAt:number}>('SELECT reference,\'RFQ\' kind,created_at AS "createdAt" FROM rfqs WHERE deleted_at IS NULL UNION ALL SELECT reference,\'Contact\' kind,created_at AS "createdAt" FROM contact_inquiries WHERE deleted_at IS NULL ORDER BY "createdAt" DESC LIMIT 8'),
   ]);
   return <AdminShell admin={admin}><div className="admin-page"><div className="admin-heading"><div><p className="eyebrow">Protected CMS</p><h1>Dashboard</h1></div><span className="status-pill">Database connected</span></div>
     <div className="admin-stats">{["Products","RFQs","Contact enquiries","Media files"].map((label,index)=><article key={label}><span>{label}</span><strong>{counts[index]?.n||0}</strong></article>)}</div>

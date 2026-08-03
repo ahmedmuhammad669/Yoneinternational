@@ -213,6 +213,22 @@ h3 {
   object-position: center;
 }
 
+.admin-pwa-button {
+  width: 100%;
+  min-height: 44px;
+  margin: 8px 0 16px;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 12px;
+  background: rgba(8,112,120,.26);
+  color: #fff;
+  padding: 10px 12px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-pwa-button:disabled { opacity: .65; cursor: not-allowed; }
+
 .desktop-nav {
   display: flex;
   justify-content: center;

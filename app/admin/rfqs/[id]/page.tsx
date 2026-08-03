@@ -72,22 +72,22 @@ export default async function RfqDetailPage({
 
   const [rfq, items, notes] = await Promise.all([
     first<RfqDetail>(
-      `SELECT id,reference,full_name AS fullName,email,company,country,phone,
-        target_market AS targetMarket,required_standard AS requiredStandard,
-        private_label AS privateLabel,packaging,desired_date AS desiredDate,
-        products_text AS productsText,message,attachment_media_id AS attachmentMediaId,
-        consent_at AS consentAt,status,assigned_to AS assignedTo,
-        created_at AS createdAt,updated_at AS updatedAt
+      `SELECT id,reference,full_name AS "fullName",email,company,country,phone,
+        target_market AS "targetMarket",required_standard AS "requiredStandard",
+        private_label AS "privateLabel",packaging,desired_date AS "desiredDate",
+        products_text AS "productsText",message,attachment_media_id AS "attachmentMediaId",
+        consent_at AS "consentAt",status,assigned_to AS "assignedTo",
+        created_at AS "createdAt",updated_at AS "updatedAt"
        FROM rfqs WHERE id=? AND deleted_at IS NULL`,
       id,
     ),
     all<RfqItem>(
-      `SELECT id,product_name AS productName,sku,quantity,notes
+      `SELECT id,product_name AS "productName",sku,quantity,notes
        FROM rfq_items WHERE rfq_id=? ORDER BY created_at,id`,
       id,
     ),
     all<InquiryNote>(
-      `SELECT id,note,created_by AS createdBy,created_at AS createdAt
+      `SELECT id,note,created_by AS "createdBy",created_at AS "createdAt"
        FROM inquiry_notes
        WHERE inquiry_type='rfqs' AND inquiry_id=?
        ORDER BY created_at DESC`,

@@ -4,7 +4,7 @@ Open `/admin`, sign in with an approved email and use the left navigation. Owner
 
 ## Catalog
 
-1. Upload approved product images in **Media** as public images. Copy the media ID.
+1. In **Media**, select one or several approved product images, choose **Images** and **Public**, then upload. Up to 20 files and 50 MB combined are accepted. Copy the resulting media ID from the list.
 2. Create a top-level category or subcategory. For a subcategory, paste its parent category ID.
 3. Publish the category.
 4. Create the product, select the subcategory ID, paste the primary public image ID and enter only verified fields.
@@ -13,29 +13,15 @@ Open `/admin`, sign in with an approved email and use the left navigation. Owner
 
 Unknown materials, finishes, sterilization, regulatory status, MOQ and lead-time fields must remain blank. Use **Media → Catalog** to upload a published PDF; `/catalog` always downloads the latest approved public catalog.
 
-### Bulk media upload
-
-1. Open **Media** and choose up to 20 files together.
-2. Select the correct kind and visibility for the whole batch.
-3. Optionally enter a shared alt-text prefix. The original filename is appended so every image remains distinguishable.
-4. The batch is limited to 50 MB total. Images accept JPEG, PNG and WebP; catalogs/datasheets accept PDF only.
-5. All files are validated first. If storage or the database fails, uploaded objects from that batch are cleaned up instead of leaving partial records.
-
 ## Editorial content
 
 - Blog posts, albums and jobs use Draft, Published, Archived and Trash lifecycle states.
+- To add many articles, open **Blog / News**, download the CSV template, complete the `title` and `body` columns, and import up to 100 rows. Every row is created as Draft; review each article before publishing.
+- CSV fields containing commas or line breaks must be enclosed in double quotes. Duplicate or existing slugs, unknown IDs and invalid files are rejected without a partial import.
 - Expired jobs automatically stop appearing publicly.
 - A testimonial cannot publish until permission is **Approved** and verification is **Verified**.
 - A certification cannot publish until evidence media is attached and the Owner marks it verified.
 - ISO 13485 and CE are seeded as private unverified Draft references only.
-
-### Bulk blog import
-
-1. Open **Blog / news** and download the CSV template.
-2. Keep the required `title` and `body` columns. Optional columns are `slug`, `excerpt`, `sources`, `hero_media_id`, `author_id`, and `category_id`.
-3. Upload up to 100 articles in one CSV (maximum 2 MB).
-4. Every imported article is deliberately saved as **Draft**. Review facts, sources, images and technical meaning before publishing.
-5. CSV slugs must be unique and must not already exist. Provided author, category and hero-image IDs are validated before the batch is inserted.
 
 ## Enquiries
 
@@ -47,4 +33,5 @@ RFQs, contacts and applications show reference, status and assignee. Change stat
 - Never publish invented products, reviews, certifications, clients, countries, claims or jobs.
 - Trash is a soft delete. Preserve audit history.
 - Upload only PDF, JPEG, PNG or WebP files that you are authorised to publish.
+- Bulk media uploads go directly to private Supabase Storage with short-lived signed tickets. The server checks actual file signatures, sizes and ownership before adding them to the Media Library.
 - Use meaningful alt text for informative images and leave decorative alt text blank.

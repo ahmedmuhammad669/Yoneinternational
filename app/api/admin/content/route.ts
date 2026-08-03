@@ -56,10 +56,10 @@ export async function POST(request:Request){
     const mediaId=String(values.primary_media_id||values.media_id||"");
     if(resourceKey==="products"&&mediaId){
       await run("DELETE FROM product_media WHERE product_id=? AND is_primary=1",recordId);
-      await run("INSERT OR REPLACE INTO product_media(product_id,media_id,sort_order,is_primary) VALUES(?,?,0,1)",recordId,mediaId);
+      await run("INSERT INTO product_media(product_id,media_id,sort_order,is_primary) VALUES(?,?,0,1) ON CONFLICT(product_id,media_id) DO UPDATE SET sort_order=0,is_primary=1",recordId,mediaId);
     }
     if(resourceKey==="gallery"&&mediaId){
-      await run("INSERT OR IGNORE INTO gallery_images(id,album_id,media_id,caption,alt_text,image_date,sort_order,created_at) VALUES(?,?,?,?,?,NULL,0,?)",id("gimg"),recordId,mediaId,values.description||null,values.name||null,now);
+      await run("INSERT INTO gallery_images(id,album_id,media_id,caption,alt_text,image_date,sort_order,created_at) VALUES(?,?,?,?,?,NULL,0,?) ON CONFLICT(album_id,media_id) DO NOTHING",id("gimg"),recordId,mediaId,values.description||null,values.name||null,now);
     }
     await audit(admin.email,itemId?"content.update":"content.create",resource.table,recordId,{status});
     return redirectTo(request,resourceKey,itemId?"Changes saved.":"Record created.");

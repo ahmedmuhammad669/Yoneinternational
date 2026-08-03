@@ -1,51 +1,59 @@
-# Yone International production website
+# Yone International — Netlify + Supabase release
 
-Database-backed B2B catalog, multi-product RFQ flow and protected Owner/Editor CMS for Yone International. Public pages are server-rendered through Next.js App Router/Vinext. Persistent records use Cloudflare D1 and public/private files use R2. The deployment target is OpenAI Sites; the existing Netlify site is not modified.
+Production-oriented multilingual B2B website, RFQ system and protected Owner/Editor CMS for Yone International. Public pages use Next.js App Router and crawlable server-rendered HTML. PostgreSQL, authentication and private media use Supabase; hosting is configured for Netlify.
 
-## Public languages
+## Included
 
-The public site includes server-rendered language routes and an accessible
-language menu:
+- English, American English, Arabic/RTL, German, Italian, Chinese, Japanese and Korean public routes
+- Categories, products, media, blog, gallery, careers, SEO, settings and user administration
+- Multi-product RFQ basket, full enquiry details, notes, assignment/status and CSV export
+- Bulk product/catalog image and PDF uploads through private Supabase Storage
+- Bulk Blog CSV import (up to 100 Draft articles per file)
+- Passwordless Supabase admin login and one-time Owner setup
+- Installable Android admin PWA with optional enquiry push notifications
+- WhatsApp chat, X/Twitter, LinkedIn, Facebook, Instagram and downloadable catalog links
 
-- English (`/`)
-- American English (`/us`)
-- Arabic with right-to-left layout (`/ar`)
-- German (`/de`)
-- Italian (`/it`)
-- Simplified Chinese (`/zh`)
-- Japanese (`/ja`)
-- Korean (`/ko`)
+## Requirements
 
-Navigation, core company content, contact and RFQ interfaces are localized.
-Administrator-entered product names, SKUs, specifications and approved editorial
-content remain in their entered source language unless a verified translation is
-provided, preventing technical claims from being changed automatically.
+- Node.js 22.13+
+- Netlify account/site
+- Supabase project
+- Optional Resend account for email notifications
 
-## Supported stack
+Versions are locked in `package-lock.json`.
 
-- Node.js 22.13 or newer
-- Next.js 16.2.12, React 19.2.6 and TypeScript 5.9.3
-- Vinext 0.0.50 and Vite 8.0.13
-- Drizzle ORM 0.45.2 with D1/SQLite migrations
-- R2 object storage
-- Dispatch-owned Sign in with ChatGPT plus a database Owner/Editor allowlist
+## Setup
 
-Exact dependency versions are locked in `package-lock.json`.
+1. Create a Supabase project. Open SQL Editor and run `supabase/migrations/0001_yone_international.sql`, followed by `0002_bulk_admin.sql`. Existing v15 deployments only need the second migration.
+2. In Supabase Authentication, enable Email OTP/magic links. Add `https://YOUR-DOMAIN/auth/callback` to redirect URLs.
+3. Copy the variable names from `.env.example` into Netlify → Site configuration → Environment variables. Never commit real values.
+4. Set `OWNER_INVITE_EMAIL=yoneinternational@gmail.com` (or the approved Owner address). Do not put a password in code.
+5. Deploy this folder through Git or Netlify CLI. Do not drag only `.next`; Netlify must build the source.
+6. Visit `/admin/setup`, request the secure email link and activate the first Owner.
+7. Open `/admin` on Android Chrome, choose **Add to Home screen**, then press **Enable enquiry notifications**.
 
-## Configuration
+For exact Netlify/Supabase steps see `docs/NETLIFY_DEPLOYMENT.md`. For mobile administration see `docs/MOBILE_ADMIN_APP.md`.
 
-Copy `.env.example` to the deployment environment and set values there. Never commit values.
+## Bulk administration
+
+- **Admin → Media:** select up to 20 images/PDFs (50 MB combined). Files use signed, direct Supabase uploads and are verified server-side before records are committed.
+- **Admin → Blog / News:** download the included CSV template and import up to 100 articles. Imports are always saved as Draft and must be reviewed before publication.
+
+## Environment variables
 
 - `NEXT_PUBLIC_SITE_URL`: canonical HTTPS origin
-- `OWNER_INVITE_EMAIL`: comma-separated approved emails for the one-time
-  first-Owner setup. Equivalent Gmail/Googlemail dot and `+tag` aliases are
-  matched securely; other providers require an exact address.
-- `RATE_LIMIT_SALT`: long random server-only value
-- `RESEND_API_KEY`, `MAIL_FROM`, `NOTIFICATION_EMAIL`: optional server-side mail delivery; submissions remain in D1 if delivery is not configured
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase browser-safe project values
+- `SUPABASE_SERVICE_ROLE_KEY`: server-only Storage key
+- `DATABASE_URL`: Supabase direct/session-pooler PostgreSQL URL for server functions
+- `SUPABASE_STORAGE_BUCKET`: normally `yone-media`
+- `OWNER_INVITE_EMAIL`: approved first Owner email
+- `RATE_LIMIT_SALT`: long random server-only string
+- `RESEND_API_KEY`, `MAIL_FROM`, `NOTIFICATION_EMAIL`: optional email delivery
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`: optional web-push notifications
 
-Do not add a Gmail password. D1 is bound as `DB` and R2 as `BUCKET` in `.openai/hosting.json`.
+Generate VAPID keys locally with `npx web-push generate-vapid-keys`. Never expose the private key.
 
-## Local development and checks
+## Commands
 
 ```bash
 npm ci
@@ -53,47 +61,21 @@ npm run dev
 npm run typecheck
 npm run lint
 npm test
-npm run db:generate
+npm run build
+npm audit --omit=dev
 ```
-
-The Sites lifecycle performs the authoritative production build during checkpoint deployment. `npm run build` is for targeted diagnosis.
-
-## Database
-
-Apply `drizzle/*.sql` in filename order. The safe seed creates editable top-level categories and public contact settings. It creates no products, jobs or testimonials, and certification mentions remain unverified Draft records.
-
-For schema changes, edit `db/schema.ts`, run `npm run db:generate`, inspect the generated SQL, then test it against a disposable database before deployment.
-
-## Secure first Owner
-
-1. Set `OWNER_INVITE_EMAIL` to Mutahar’s approved invitation email or a
-   comma-separated list of approved Owner identities.
-2. Deploy with D1/R2 and environment variables configured.
-3. Visit `/admin/setup` and sign in with an approved email.
-4. Activate the one-time Owner invitation.
-5. Setup closes after the first active Owner exists.
-6. Add Editors/Owners from `/admin/users`. Sign-in identity and role authorization are both enforced server-side.
-
-The application stores no password. Use the platform account’s MFA and session controls.
-
-## Bulk administration
-
-- **Media:** `/admin/media` accepts up to 20 validated files per batch, with a 50 MB combined limit and cleanup if persistence fails.
-- **Blog:** `/admin/blog` imports up to 100 CSV rows as Draft articles. Download the included template from `/templates/blog-import-template.csv` and review every article before publication.
 
 ## Backup, restore and rollback
 
-- D1: create an export/snapshot before schema changes and on the agreed backup schedule.
-- R2: enable object versioning or scheduled replication where available.
-- Restore: create a clean database, apply migrations, import the verified D1 export, restore R2 objects with their original keys, then test admin and public downloads.
-- Rollback: select the prior saved Sites version and redeploy it. If a migration is not backward compatible, restore the matching D1 snapshot first.
+- Before migrations, take a Supabase database backup and copy the `yone-media` bucket.
+- Test restores in a separate Supabase project, then point a Netlify preview deployment at it.
+- Keep the previous Netlify deploy available. Roll back from Deploys → select prior successful deploy → Publish deploy.
+- Restore the matching database/storage snapshot if a schema change is not backward compatible.
 
-Never test restore against production. Record the snapshot/version IDs and completion time in the operational log.
+## Documentation
 
-## Content and operations
-
-See:
-
+- `docs/NETLIFY_DEPLOYMENT.md`
+- `docs/MOBILE_ADMIN_APP.md`
 - `docs/ADMIN_GUIDE.md`
 - `docs/PRODUCT_IMPORT_TEMPLATE.csv`
 - `docs/SEO_CHECKLIST.md`

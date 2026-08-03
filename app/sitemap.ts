@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     safeAll<{slug:string;categorySlug:string;parentSlug:string;updatedAt:number}>("SELECT p.slug,c.slug categorySlug,pc.slug parentSlug,p.updated_at updatedAt FROM products p JOIN categories c ON c.id=p.category_id LEFT JOIN categories pc ON pc.id=c.parent_id WHERE p.status='published' AND p.deleted_at IS NULL"),
     safeAll<{slug:string;updatedAt:number}>("SELECT slug,updated_at updatedAt FROM blog_posts WHERE status='published' AND deleted_at IS NULL"),
     safeAll<{slug:string;updatedAt:number}>("SELECT slug,updated_at updatedAt FROM gallery_albums WHERE status='published' AND deleted_at IS NULL"),
-    safeAll<{slug:string;updatedAt:number}>("SELECT slug,updated_at updatedAt FROM jobs WHERE status='published' AND deleted_at IS NULL AND (closing_date IS NULL OR closing_date>=unixepoch())"),
+    safeAll<{slug:string;updatedAt:number}>('SELECT slug,updated_at AS "updatedAt" FROM jobs WHERE status=\'published\' AND deleted_at IS NULL AND (closing_date IS NULL OR closing_date>=extract(epoch from now())::integer)'),
   ]);
   const staticRoutes=routes.map((route) => ({
     url: `${baseUrl}${route}`,

@@ -1,1 +1,0 @@
-ALTER TABLE `rfqs` ADD `products_text` text;

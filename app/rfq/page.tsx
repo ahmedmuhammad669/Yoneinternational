@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Request a Quote", description: "Subm
 
 export const dynamic="force-dynamic";
 export default async function RfqPage({searchParams}:{searchParams:Promise<{error?:string;added?:string}>}) {
-  const query=await searchParams;const basketId=(await cookies()).get("yone_rfq_basket")?.value;const items=basketId?await safeAll<{id:string;productId:string;quantity:number;name:string;sku:string|null;imageId:string|null}>("SELECT bi.id,bi.product_id AS productId,bi.quantity,p.name,p.sku,pm.media_id AS imageId FROM rfq_basket_items bi JOIN products p ON p.id=bi.product_id LEFT JOIN product_media pm ON pm.product_id=p.id AND pm.is_primary=1 WHERE bi.basket_id=? ORDER BY bi.created_at",basketId):[];
+  const query=await searchParams;const basketId=(await cookies()).get("yone_rfq_basket")?.value;const items=basketId?await safeAll<{id:string;productId:string;quantity:number;name:string;sku:string|null;imageId:string|null}>('SELECT bi.id,bi.product_id AS "productId",bi.quantity,p.name,p.sku,pm.media_id AS "imageId" FROM rfq_basket_items bi JOIN products p ON p.id=bi.product_id LEFT JOIN product_media pm ON pm.product_id=p.id AND pm.is_primary=1 WHERE bi.basket_id=? ORDER BY bi.created_at',basketId):[];
   return (
     <SiteShell>
       <PageHero eyebrow="Request a Quote" title="One enquiry. Multiple requirements." description="No account is required. Submitting an RFQ records an enquiry, not an order, and does not promise price, availability, MOQ or delivery timing." breadcrumbs={[{ label: "Home", href: "/" }, { label: "RFQ Basket" }]} />

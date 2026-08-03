@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { AdminIdentity } from "../lib/admin";
 import { adminNav } from "../lib/admin-resources";
-import { chatGPTSignOutPath } from "../app/chatgpt-auth";
+import { signOutPath } from "../app/admin-auth";
+import { AdminPwa } from "./admin-pwa";
 
 export function AdminShell({ admin, children }: { admin: AdminIdentity; children: ReactNode }) {
   return <div className="admin-app">
@@ -11,7 +12,8 @@ export function AdminShell({ admin, children }: { admin: AdminIdentity; children
       <nav aria-label="Administration">
         {adminNav.map(([slug,label])=><Link href={slug==="overview"?"/admin":`/admin/${slug}`} key={slug}>{label}</Link>)}
       </nav>
-      <a className="admin-signout" href={chatGPTSignOutPath("/")}>Secure sign out</a>
+      <AdminPwa />
+      <a className="admin-signout" href={signOutPath("/")}>Secure sign out</a>
     </aside>
     <div className="admin-main">
       <header className="admin-topbar"><div><strong>{admin.displayName || admin.email}</strong><span>{admin.role}</span></div><Link href="/">View public site</Link></header>

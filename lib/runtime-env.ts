@@ -1,16 +1,31 @@
 export type YoneRuntimeEnv = {
-  DB?: D1Database;
-  BUCKET?: R2Bucket;
+  DATABASE_URL?: string;
+  NEXT_PUBLIC_SUPABASE_URL?: string;
+  NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
+  SUPABASE_STORAGE_BUCKET?: string;
   OWNER_INVITE_EMAIL?: string;
   RATE_LIMIT_SALT?: string;
   RESEND_API_KEY?: string;
   MAIL_FROM?: string;
   NOTIFICATION_EMAIL?: string;
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY?: string;
+  VAPID_PRIVATE_KEY?: string;
+  VAPID_SUBJECT?: string;
 };
 
-declare global {
-  var __YONE_RUNTIME_ENV__: YoneRuntimeEnv | undefined;
-}
-
-export function setRuntimeEnv(value:YoneRuntimeEnv){globalThis.__YONE_RUNTIME_ENV__=value;}
-export function runtimeEnv(){return globalThis.__YONE_RUNTIME_ENV__||{};}
+export function runtimeEnv():YoneRuntimeEnv{return {
+  DATABASE_URL:process.env.DATABASE_URL,
+  NEXT_PUBLIC_SUPABASE_URL:process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY:process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  SUPABASE_SERVICE_ROLE_KEY:process.env.SUPABASE_SERVICE_ROLE_KEY,
+  SUPABASE_STORAGE_BUCKET:process.env.SUPABASE_STORAGE_BUCKET,
+  OWNER_INVITE_EMAIL:process.env.OWNER_INVITE_EMAIL,
+  RATE_LIMIT_SALT:process.env.RATE_LIMIT_SALT,
+  RESEND_API_KEY:process.env.RESEND_API_KEY,
+  MAIL_FROM:process.env.MAIL_FROM,
+  NOTIFICATION_EMAIL:process.env.NOTIFICATION_EMAIL,
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY:process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY:process.env.VAPID_PRIVATE_KEY,
+  VAPID_SUBJECT:process.env.VAPID_SUBJECT,
+};}

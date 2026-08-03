@@ -1,1 +1,1 @@
-export function parseCsv(input: string): string[][];
+export function parseCsv(input:string):string[][];

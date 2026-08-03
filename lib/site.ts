@@ -13,7 +13,7 @@ export const siteConfig = {
   twitter: "https://x.com/yoneintl",
   catalog:
     "https://drive.google.com/drive/folders/1PhtEZyIS4sVxh_dYCHurykNlnI6Lgrbz?usp=drive_link",
-  currentSite: "https://yone-international.loganmarkson418124fy.chatgpt.site",
+  currentSite: "https://yoneinternational.netlify.app",
 } as const;
 
 export const primaryNav = [
